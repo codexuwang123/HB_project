@@ -11,7 +11,7 @@ from spider import Spider_data
 from parse import format_base_spdb
 from redis_client import redis_connect
 from multiprocessing import Pool
-import threading
+
 
 # 实例化sql链接
 s_data = save_data_to_sql.Save_score_to_sql()
