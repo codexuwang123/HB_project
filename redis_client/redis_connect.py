@@ -14,7 +14,8 @@ class Redis_connect():
 
     def __init__(self):
         # redis 链接池
-        conn_pool = redis.ConnectionPool(host=test_redis['host'], password=test_redis['password'], port=test_redis['port'], db=test_redis['db'])
+        conn_pool = redis.ConnectionPool(host=test_redis['host'], password=test_redis['password'],
+                                         port=test_redis['port'], db=test_redis['db'])
         self.job_redis = redis.Redis(connection_pool=conn_pool)
 
     def search_data_redis(self, redis_key):
@@ -28,3 +29,7 @@ class Redis_connect():
     def search_all_data(self, redis_key):
         # redis 查询所有数据
         return self.job_redis.smembers(redis_key)
+
+    def delete_redis_all(self, redis_key):
+        # redis 删除指定key 下的所有数据
+        return self.job_redis.delete(redis_key)
