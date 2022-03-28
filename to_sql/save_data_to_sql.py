@@ -24,7 +24,7 @@ class Save_score_to_sql(object):
 
     # 首页数据库数据插入
     def search_data_to_sql(self, data):
-        print(data, '======================')
+        print(data, '数据来了======================')
         sql = 'insert into search_data(id,number,tittle,key_word,skip_url,true_url)VALUES (0,"{}","{}","{}","{}","{}")'.format(
             data['number'], data['tittle'], data['keyword'],data['url'], data['true_url'])
         try:

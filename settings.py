@@ -142,9 +142,45 @@ def set_log():
     return logger2
 
 
+# 设置日志函数
+def main_set_log():
+    now = int(time.time())
+    timeArray = time.localtime(now)
+    otherStyleTime = time.strftime("%Y%m%d", timeArray)
+    logger2 = logging.getLogger('mylogger2')
+    logger2.setLevel(logging.DEBUG)
+    if not logger2.handlers:
+        fh = logging.FileHandler('./log/{}.txt'.format(otherStyleTime), 'a', encoding='utf-8')
+        formatter = logging.Formatter(
+            '%(asctime)s - %(filename)s - [line:%(lineno)d] - %(levelname)s - %(process)d - %(message)s')
+        fh.setFormatter(formatter)
+        logger2.addHandler(fh)
+    return logger2
+
 # 基础配置
 
 set_ = {
     'max_page': 200,  # 最大页数 200
 
 }
+
+from multiprocessing import Pool
+
+
+def get_(i):
+    print('=======')
+    print(i * 2 ** 2)
+    time.sleep(3)
+
+
+if __name__ == '__main__':
+
+    p = Pool(4)
+    while True:
+        for i in range(10):
+            p.apply_async(get_, args=(i,))
+        p.close()
+        p.join()
+
+    print('等待任务中')
+    time.sleep(3)

@@ -7,9 +7,8 @@
 # 格式化基本信息
 import random
 import re
-import uuid
+
 import requests
-import threadpool
 
 from . import xmla_parse
 from . import parse_baidu
@@ -26,16 +25,30 @@ from to_sql import save_data_to_sql
 from settings import ua
 from . import laishu8
 from . import qmzhongwen_parse
-from settings import set_log
 from redis_client import redis_connect
 import json
 import urllib3
 
+conn = redis_connect.Redis_connect()
+import logging
 # 忽略证书警告
 urllib3.disable_warnings()
-logging_ = set_log()
-conn = redis_connect.Redis_connect()
 
+
+
+def main_set_logs():
+    now = int(time.time())
+    timeArray = time.localtime(now)
+    otherStyleTime = time.strftime("%Y%m%d", timeArray)
+    logger2 = logging.getLogger('mylogger2')
+    logger2.setLevel(logging.DEBUG)
+    if not logger2.handlers:
+        fh = logging.FileHandler('../log/{}.txt'.format(otherStyleTime), 'a', encoding='utf-8')
+        formatter = logging.Formatter(
+            '%(asctime)s - %(filename)s - [line:%(lineno)d] - %(levelname)s - %(process)d - %(message)s')
+        fh.setFormatter(formatter)
+        logger2.addHandler(fh)
+    return logger2
 
 # 获取真实页面方法
 def get_true(url, ssin=None):
@@ -64,15 +77,16 @@ def get_true(url, ssin=None):
                     print(e, '异常编码了================')
                     return info, res.url
             else:
-                logging_.info('编码异常-连接为{}，'.format(res.url))
+                # logging_1.info('编码异常-连接为{}，'.format(res.url))
+
                 return '编码异常', res.url
         else:
             print('状态码异常返回数据', res.text)
-            logging_.info('状态码/服务异常-被访问链接为{}，'.format(res.url))
+            # logging_1.info('状态码/服务异常-被访问链接为{}，'.format(res.url))
             return '服务异常', res.url
     except Exception as e:
         print(e, '异常')
-        logging_.info('特殊异常{}，异常连接{}'.format(e, url))
+        # logging_1.info('特殊异常{}，异常连接{}'.format(e, url))
         return '超时', url
 
 
@@ -114,28 +128,25 @@ def format_data(data, dict):
 
 
 # 首页数据解析
-def format_text(first_data, keyword, ssin=None):
+def format_text(first_data, keyword, list_redis,ssin=None):
     # sql_server.undate_data(status_='1', keyword=keyword)
-    list = []
+    # print(first_data,'00000000000000000000000000')
     for i in first_data:
-        number = str(uuid.uuid1()).replace('-', '')
+
         dict = {}
         # 搜索内容标题
-        new_data = i.replace('&quot;', '')
+        new_data = i.replace('&quot;', '').replace('&#39;', '').replace('\n', '')
         new_data_ = re.sub(r'\\u\d+', '', new_data)
         # print(new_data_, '================')
         # 更进一步解析获取的脏数据
-        tittle = re.findall('title.*?:(.*?)url', new_data_)[0]
-        url = re.findall('url.*?:(.*?)\}', new_data_)[0]
+        tittle = re.findall('title.*?:(.*?)url', new_data_, re.S)[0].strip()
+        url = re.findall('url.*?:(.*?)\}', new_data_, re.S)[0]
         if ',' in url:
-            url = re.findall('url.*?:(.*?),', new_data_)[0]
+            url = re.findall('url.*?:(.*?),', new_data_, re.S)[0]
         else:
-            url = re.findall('url.*?:(.*?)\}', new_data_)[0]
+            url = re.findall('url.*?:(.*?)\}', new_data_, re.S)[0]
         new_url = url.replace('"', '').replace("'", '')
-        # details_data, true_url = get_true(url=new_url, ssin=ssin)
 
-        # print(true_url, '0111111112222222222222222222222222222222222222')
-        dict['number'] = number
         dict['tittle'] = tittle.replace('"', '').replace("'", '')
         # 跳转链接
         dict['url'] = new_url
@@ -144,20 +155,22 @@ def format_text(first_data, keyword, ssin=None):
         dict['keyword'] = keyword
         # new_keyword = keyword.replace(':', '').replace('：', '')
         # new_tittle = tittle.replace(':', '').replace('：', '')
-        dict_ = json.dumps(dict)
-        conn.insert_data_redis(redis_key='baidus', values=dict_)
+
+        list_redis.append(dict)
 
 
 # 主要解析程序
-def get_():
+def get_(new_keyword,new_tittle,details_data,true_url,dict):
     print('线程进来了================')
-    dta = conn.search_data_redis(redis_key='baidus')
-    dict = json.loads(dta)
-    new_tittle = dict.get('tittle')
-    new_url = dict.get('url')
-    details_data, true_url = get_true(url=new_url)
-    dict['true_url'] = true_url
-    new_keyword = dict.get('keyword')
+    list = []
+    # dta = conn.search_data_redis(redis_key='baidus')
+    # dict = json.loads(dta)
+    #
+    # new_tittle = dict.get('tittle')
+    # new_url = dict.get('url')
+    # details_data, true_url = get_true(url=new_url)
+    # dict['true_url'] = true_url
+    # new_keyword = dict.get('keyword')
     if new_keyword in new_tittle:
         if details_data == '编码异常':
             print('编码异常====', true_url)
@@ -209,9 +222,8 @@ def get_():
         sql_server = save_data_to_sql.Save_score_to_sql()
         sql_server.search_data_to_sql(data=dict)
         sql_server.details_data_to_sql(data=dict)
-        # list.append(dict)
+        list.append(dict)
         # print(dict)
-        return new_keyword
     else:
         print('不符合跳过0000000000000000000000000000000000')
         print(new_tittle, '111111111111111111')

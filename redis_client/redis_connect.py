@@ -33,3 +33,8 @@ class Redis_connect():
     def delete_redis_all(self, redis_key):
         # redis 删除指定key 下的所有数据
         return self.job_redis.delete(redis_key)
+
+
+# conn = Redis_connect()
+# flag_data = conn.search_all_data(redis_key='baidus')
+# print(flag_data)
