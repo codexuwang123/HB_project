@@ -15,36 +15,11 @@ from redis_client import redis_connect
 from multiprocessing import Pool
 import json
 from concurrent.futures import ThreadPoolExecutor
+from settings import set_
 
 conn = redis_connect.Redis_connect()
 # 实例化sql链接
 s_data = save_data_to_sql.Save_score_to_sql()
-
-
-# 主函数调用
-# def last_mains():
-#     # 数据库获取关键次列表
-#     keyword_list = s_data.get_keyword()
-#     if keyword_list:
-#         i = ''
-#         for i in keyword_list:
-#             list_redis = []
-#             dict_redis = {}
-#             dict_redis['book_name'] = i.get('Search_Keyword')
-#             for n in range(0, 20, 10):
-#                 spider_self = Spider_data.Spider_desc(wd=i.get('Search_Keyword'))
-#                 spider_self.spider(pn=n, keyword=spider_self.wd, list_redis=list_redis)
-#             dict_redis['data'] = list_redis
-#             dict_ = json.dumps(dict_redis)
-#             conn.insert_data_redis(redis_key='baidus', values=dict_)
-#         # 更新爬虫状态
-#         s_data.undate_data(status_='1', keyword=i.get('Search_Keyword'))
-#         # 关闭数据库连接
-#         # s_data.close()
-#         return keyword_list
-#     else:
-#         print('========温馨提示：没有有效关键词需要爬取=======')
-
 
 # 总调用
 def main_parse(dict):
@@ -81,13 +56,10 @@ if __name__ == '__main__':
                 data_book = dict.get('data')
                 print(data_book,'000001111111111111111')
                 # 最大任务数
-                # pool = ThreadPool(8)
                 time3 = time.time()
-                with ThreadPoolExecutor(max_workers=8)as f:
+                with ThreadPoolExecutor(max_workers=set_.get('max_workers'))as f:
 
                     results = f.map(main_parse, data_book)
-                # pool.close()
-                # pool.join()
                 s_data.undate_data(status_='2', keyword=book_name)
         except Exception as e:
             print(e, '=============')

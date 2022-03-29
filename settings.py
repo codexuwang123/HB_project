@@ -157,30 +157,10 @@ def main_set_log():
         logger2.addHandler(fh)
     return logger2
 
+
 # 基础配置
 
 set_ = {
     'max_page': 200,  # 最大页数 200
-
+    'max_workers': 2  # 最大线程数
 }
-
-from multiprocessing import Pool
-
-
-def get_(i):
-    print('=======')
-    print(i * 2 ** 2)
-    time.sleep(3)
-
-
-if __name__ == '__main__':
-
-    p = Pool(4)
-    while True:
-        for i in range(10):
-            p.apply_async(get_, args=(i,))
-        p.close()
-        p.join()
-
-    print('等待任务中')
-    time.sleep(3)

@@ -102,7 +102,6 @@ def last_mains():
             for n in range(0, 20, 10):
                 spider_self = Spider_desc(wd=i.get('Search_Keyword'))
                 spider_self.spider(pn=n, keyword=spider_self.wd, list_redis=list_redis)
-            print('8888888888888888888', list_redis, '4444444444444444444444444444')
             dict_redis['data'] = list_redis
             dict_ = json.dumps(dict_redis, ensure_ascii=False)
             print(dict_)
