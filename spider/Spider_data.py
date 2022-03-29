@@ -24,8 +24,8 @@ s_data = save_data_to_sql.Save_score_to_sql()
 
 list = []
 
-
 from settings import ua
+
 
 # 设置日志函数
 def set_log():
@@ -41,7 +41,6 @@ def set_log():
         fh.setFormatter(formatter)
         logger2.addHandler(fh)
     return logger2
-
 
 
 # 主要爬虫方法
@@ -85,7 +84,7 @@ class Spider_desc():
         if res.status_code == 200:
             # print(res.text,'7777777777')
             time.sleep(2)
-            data = re.findall('data-tools=.*?(\{.*?\})', res.text,re.S)
+            data = re.findall('data-tools=.*?(\{.*?\})', res.text, re.S)
             format_base_spdb.format_text(first_data=data, keyword=keyword, ssin=self.ssin, list_redis=list_redis)
 
 
@@ -103,15 +102,14 @@ def last_mains():
             for n in range(0, 20, 10):
                 spider_self = Spider_desc(wd=i.get('Search_Keyword'))
                 spider_self.spider(pn=n, keyword=spider_self.wd, list_redis=list_redis)
-            print('8888888888888888888',list_redis,'4444444444444444444444444444')
+            print('8888888888888888888', list_redis, '4444444444444444444444444444')
             dict_redis['data'] = list_redis
-            dict_ = json.dumps(dict_redis,ensure_ascii=False)
+            dict_ = json.dumps(dict_redis, ensure_ascii=False)
             print(dict_)
             conn.insert_data_redis(redis_key='baidus', values=dict_)
             print('redis 数据存放成功')
-        # 更新爬虫状态
-        s_data.undate_data(status_='1', keyword=i.get('Search_Keyword'))
-        return keyword_list
+            # 更新爬虫状态
+            s_data.undate_data(status_='1', keyword=i.get('Search_Keyword'))
     else:
         print('========温馨提示：没有有效关键词需要爬取=======')
 

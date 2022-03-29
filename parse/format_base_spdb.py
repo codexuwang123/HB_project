@@ -31,9 +31,9 @@ import urllib3
 
 conn = redis_connect.Redis_connect()
 import logging
+
 # 忽略证书警告
 urllib3.disable_warnings()
-
 
 
 def main_set_logs():
@@ -49,6 +49,7 @@ def main_set_logs():
         fh.setFormatter(formatter)
         logger2.addHandler(fh)
     return logger2
+
 
 # 获取真实页面方法
 def get_true(url, ssin=None):
@@ -90,6 +91,28 @@ def get_true(url, ssin=None):
         return '超时', url
 
 
+# 特殊详情页解析
+def detail_parse(url):
+    uA = ua.get('user_agent')
+    headers = {
+        'User-Agent': random.choice(uA),
+    }
+    res = requests.get(url, headers=headers, verify=False)
+    info = res.text
+    char = re.findall('charset="{0,1}(.*?)"', info, re.S)
+    if char:
+        try:
+            info1 = res.content.decode(encoding='{}'.format(char[0].lower()))
+            return info1, res.url
+        except Exception as e:
+            print(e, '异常编码了================')
+            return info, res.url
+    else:
+        # logging_1.info('编码异常-连接为{}，'.format(res.url))
+
+        return '编码异常', res.url
+
+
 # 详情页解析
 def format_data(data, dict):
     dict_details = {}
@@ -128,7 +151,7 @@ def format_data(data, dict):
 
 
 # 首页数据解析
-def format_text(first_data, keyword, list_redis,ssin=None):
+def format_text(first_data, keyword, list_redis, ssin=None):
     # sql_server.undate_data(status_='1', keyword=keyword)
     # print(first_data,'00000000000000000000000000')
     for i in first_data:
@@ -160,7 +183,7 @@ def format_text(first_data, keyword, list_redis,ssin=None):
 
 
 # 主要解析程序
-def get_(new_keyword,new_tittle,details_data,true_url,dict):
+def get_(new_keyword, new_tittle, details_data, true_url, dict):
     print('线程进来了================')
     list = []
     # dta = conn.search_data_redis(redis_key='baidus')

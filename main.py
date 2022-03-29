@@ -14,6 +14,7 @@ from parse import format_base_spdb
 from redis_client import redis_connect
 from multiprocessing import Pool
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 conn = redis_connect.Redis_connect()
 # 实例化sql链接
@@ -53,6 +54,7 @@ def main_parse(dict):
     new_tittle = dict.get('tittle')
     new_url = dict.get('url')
     details_data, true_url = format_base_spdb.get_true(url=new_url)
+
     dict['true_url'] = true_url
     new_keyword = dict.get('keyword')
     number = str(uuid.uuid1()).replace('-', '')
@@ -68,23 +70,25 @@ if __name__ == '__main__':
         print(flag_data,'''==============11111111111111''')
         time.sleep(3)
         print('等待新任务中========')
-        # try:
-        flags = len(flag_data)
-        if flags == 0:
-            continue
-        else:
-            dta = conn.search_data_redis(redis_key='baidus')
-            dict = json.loads(dta)
-            book_name = dict.get('book_name')
-            data_book = dict.get('data')
-            print(data_book,'000001111111111111111')
-            # 最大任务数
-            pool = ThreadPool(8)
-            time3 = time.time()
-            results = pool.map(main_parse, data_book)
-            pool.close()
-            pool.join()
-            s_data.undate_data(status_='2', keyword=book_name)
-        # except Exception as e:
-        #     print(e, '=============')
+        try:
+            flags = len(flag_data)
+            if flags == 0:
+                continue
+            else:
+                dta = conn.search_data_redis(redis_key='baidus')
+                dict = json.loads(dta)
+                book_name = dict.get('book_name')
+                data_book = dict.get('data')
+                print(data_book,'000001111111111111111')
+                # 最大任务数
+                # pool = ThreadPool(8)
+                time3 = time.time()
+                with ThreadPoolExecutor(max_workers=8)as f:
+
+                    results = f.map(main_parse, data_book)
+                # pool.close()
+                # pool.join()
+                s_data.undate_data(status_='2', keyword=book_name)
+        except Exception as e:
+            print(e, '=============')
 
