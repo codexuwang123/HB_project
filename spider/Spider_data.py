@@ -66,7 +66,7 @@ class Spider_desc():
         }
 
     # 解析主函数
-    def spider(self, pn, keyword, list_redis):
+    def spider(self, pn, keyword, list_redis, section_name, author):
         params = {
             'wd': self.wd,
             'pn': pn,
@@ -78,14 +78,15 @@ class Spider_desc():
             'rsv_pq': 'b161436a0002d6b1',
             'rsv_t': '6085O2ISriAmrAq2E7OHkCO9Yoo2ZzW%2Bd7BC5z177LG9H8MAhPaEcT6V%2Bk4Rky377JQX'
         }
-        self.ssin = requests.session()
+        url = self.url.format(self.wd, pn, self.wd)
+        res = requests.get(url, headers=self.headers, params=params,verify=False)
 
-        res = self.ssin.get(self.url, headers=self.headers, params=params)
         if res.status_code == 200:
-            # print(res.text,'7777777777')
+            # print(res.text)
             time.sleep(2)
             data = re.findall('data-tools=.*?(\{.*?\})', res.text, re.S)
-            format_base_spdb.format_text(first_data=data, keyword=keyword, ssin=self.ssin, list_redis=list_redis)
+            format_base_spdb.format_text(first_data=data, keyword=keyword, list_redis=list_redis,
+                                         section_name=section_name, author=author)
 
 
 # 主函数调用
@@ -97,25 +98,28 @@ def last_mains():
         for i in keyword_list:
             list_redis = []
             dict_redis = {}
-            dict_redis['book_name'] = i.get('Search_Keyword')
+            dict_redis['book_name'] = i.get('search_keyword')
+            section_name = i.get('section_name')
+            author_name = i.get('author')
             print(dict_redis)
             for n in range(0, 20, 10):
-                spider_self = Spider_desc(wd=i.get('Search_Keyword'))
-                spider_self.spider(pn=n, keyword=spider_self.wd, list_redis=list_redis)
+                spider_self = Spider_desc(wd=i.get('search_keyword'))
+                spider_self.spider(pn=n, keyword=spider_self.wd, list_redis=list_redis, section_name=section_name,
+                                   author=author_name)
             dict_redis['data'] = list_redis
             dict_ = json.dumps(dict_redis, ensure_ascii=False)
             print(dict_)
             conn.insert_data_redis(redis_key='baidus', values=dict_)
             print('redis 数据存放成功')
             # 更新爬虫状态
-            s_data.undate_data(status_='1', keyword=i.get('Search_Keyword'))
+            s_data.undate_data(status_='1', keyword=i.get('search_keyword'))
     else:
         print('========温馨提示：没有有效关键词需要爬取=======')
 
 
 if __name__ == '__main__':
     logging_ = set_log()
-    # 存入将多任务 存入redis
+    # 存入将多任务 存入red
     while True:
         last_mains()
         time.sleep(3)
